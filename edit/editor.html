@@ -1,0 +1,327 @@
+<!doctype html>
+<html>
+<head>
+<title>Orion Editor</title>
+<style>
+html {
+	position: relative;
+	height: 100%;
+	width: 100%;
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	font-family: sans-serif;
+}
+body {
+	position: relative;
+	height: 100%;
+	width: 100%;
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+}
+div.header {
+	position: absolute;
+	top: 0px;
+	width: calc(100% - 1em);
+	height: 4em;
+	left: 0px;
+	padding: 0.5em;
+	background-color: lightgrey;
+	color: black;
+}
+
+.buttonpanel {
+	position: absolute; 
+	width: calc(100% - 1em); 
+	bottom: 0px; 
+	padding: 0.5em;
+	left: 0px;
+}
+
+.rightbuttonpanel{
+	float: right;
+}
+
+a.button:link,
+a.button:active,
+a.button:visited {
+	color: black;
+	text-decoration: none;
+	border: 2px outset darkgrey;
+	border-radius: 0.5em;
+	padding: 0.2em;
+	background-color: lightgrey;
+}
+
+a.button:hover {
+	text-decoration: underline;
+	background-color: white;
+	border: 2px solid white;
+}
+
+div.editor {
+	position: absolute;
+	left: 0px;
+	top: 5em;
+	width: 50%;
+	height: calc(100% - 5em);
+	overflow: hidden;
+	border: 0px;
+	margin: 0px;
+}
+
+div.filelist {
+	position: absolute;
+	right: 0px;
+	top: 5em;
+	width: 50%;
+	height: calc(100% - 5em - 2px);
+	border: 1px solid black;
+	margin: 0px;
+	background-color: white;
+}
+/*
+div.htmlpreviewdiv {
+	position: absolute;
+	right: 0px;
+	top: 5em;
+	width: 50%;
+	height: calc(100% - 5em - 2px);
+	border: 1px solid black;
+	margin: 0px;
+	background-color: white;
+} */
+div.title {
+	position: absolute;
+	top: 0px;
+	background-color: darkgrey;
+	height: 2.5em;
+	width: calc(100% - 0.2em);
+	overflow: hidden;
+	padding: 0.1em;
+	color: white;
+}
+iframe.htmlpreview {
+	position: absolute;
+	top: 2.5em;
+	width: 100%;
+	height: calc(100% - 2.5em);
+	border: 0px;
+}
+.filelist_entry {
+	cursor: pointer;
+	margin-bottom: 0.5em;
+}
+</style>
+<link rel="stylesheet" type="text/css" href="orion/built-editor.css"/>
+<script src="orion/built-editor.js"></script>
+<script src="stylers/text_x-php/syntax.js"></script> 
+<script src="stylers/lib/syntax.js"></script> 
+<script>
+var editor;
+function configEditor() {
+	/*global require*/
+	require(["orion/editor/edit"], function(edit) {
+		editor = edit({className: "editor"})[0];
+		editor.addEventListener('InputChanged', function(evt) {
+			editorChanged();
+		});
+		editor.onModelChanged = function(evt) {editorChanged();};
+		editor.getModel().addEventListener('Changed', function(evt) {editorChanged();});
+	});
+}
+
+window.onload = function() {
+	loadConfig();
+};
+
+var currentFile = null;
+function loadConfig() {
+	// Load config from the server
+	var req = new XMLHttpRequest();
+	req.onreadystatechange = function() {
+		if (req.readyState == 4 && req.status == 200) {
+			var config = JSON.parse(req.responseText);
+			configLoaded(config);
+		}
+	};
+	req.open('GET', 'loadconfig.php');
+	req.send();
+}
+function configLoaded(config) {
+	configEditor();
+	configFileList();
+}
+function loadFile(fileName) {
+	// Load config from the server
+	var req = new XMLHttpRequest();
+	req.onreadystatechange = function() {
+		if (req.readyState == 4 && req.status == 200) {
+			var file = JSON.parse(req.responseText);
+			editor.setText(file.contents);
+			currentFile = fileName;
+		}
+	};
+	req.open('GET', 'loadfile.php?file=' + encodeURIComponent(fileName));
+	req.send();	
+}
+function saveFile(file, contentsBlob) {
+	var req = new XMLHttpRequest();
+	req.onreadystatechange = function() {
+		if (req.readyState == 4 && req.status == 200) {
+		}
+	};
+	req.open('POST', 'savefile.php');
+	var formData = new FormData();
+	formData.append('file', file);
+	formData.append('contents', contentsBlob);
+	req.send(formData);	
+}
+function showFileList(fileList) {
+	var list = document.querySelector('.filelist');
+	list.innerHTML = '';
+	for (var n = 0; n < fileList.length; n++) {
+		let fileName = fileList[n];
+		var div = document.createElement('div');
+		div.className = 'filelist_entry';
+		div.onclick = function() {
+			loadFile(fileName);
+		};
+		div.textContent = fileName;
+		list.appendChild(div);
+	}
+}
+function configFileList(dir) {
+	// Load file list from the server
+	var req = new XMLHttpRequest();
+	req.onreadystatechange = function() {
+		if (req.readyState == 4 && req.status == 200) {
+			var fileList = JSON.parse(req.responseText);
+			showFileList(fileList);
+		}
+	};
+	req.open('GET', 'filelist.php');
+	req.send();
+	
+}
+
+</script>
+<script>
+function editorChanged()
+{
+//	if (document.getElementById('autoreload').checked)
+//		reloadPreview(false);
+}
+
+/*
+function reloadPreview(isForceReload)
+{
+	var viewer = document.querySelector('iframe.htmlpreview');
+	if (isForceReload) 
+	{
+		var newViewer = document.createElement('iframe');
+		newViewer.className = 'htmlpreview';
+		viewer.parentNode.replaceChild(newViewer, viewer);
+		viewer = newViewer;
+	}
+	try {
+		var doc = viewer.contentWindow.document;
+		doc.open();
+		doc.write(editor.getText());
+		doc.close();
+	
+		var title = viewer.contentWindow.document.title;
+		var titlebar = document.querySelector('div.title');
+		var span = document.createElement('span');
+		span.style.fontSize = '150%';
+		span.textContent = title;
+		titlebar.innerHTML = '';
+		titlebar.appendChild(span);
+	} catch(e) {  }  // There can be security errors if the user has visited a different page in the iframe
+}
+*/
+
+window.addEventListener("load", function(evt) {
+	document.querySelector('a.reload').onclick = function(evt) {
+		reloadPreview(true);
+		evt.preventDefault();
+	}
+	document.querySelector('a.newwindow').onclick = function(evt) {
+		var win = window.open();
+		var doc = win.document;
+		doc.open();
+		doc.write(editor.getText());
+		doc.close();
+		evt.preventDefault();
+	}
+	document.querySelector('a.load').onclick = function(evt) {
+		var input = document.querySelector('.fileinput');
+		input.addEventListener('change', function(evt) {
+			var filereader = new FileReader();
+			filereader.onloadend = function(evt) {
+				var text = filereader.result;
+				editor.setText(text);
+			}
+			filereader.readAsText(input.files[0]);
+		});
+		input.click();
+		evt.preventDefault();
+	}
+	document.querySelector('a.save').onclick = function(evt) {
+		var text = editor.getText();
+		if (currentFile == null) return;
+		saveFile(currentFile, new Blob([text]));
+/*
+		var defaultFileName = 'save.html';
+		if (navigator.msSaveOrOpenBlob != null)
+		{
+			var blob = new Blob([text], {type : 'text/html'});
+			navigator.msSaveOrOpenBlob(blob, defaultFileName);
+		}
+		else
+		{
+			var uri = 'data:text/html;charset=utf-8,' + encodeURIComponent(text);
+			var anchor = document.querySelector('a.save');
+			anchor.download = defaultFileName;
+			anchor.href = uri;
+		}
+*/
+	}
+
+});
+</script>
+</head>
+<body>
+
+<div class="header">
+<div style="font-weight: bold; font-size: 175%;">Orion Editor</div>
+<div class="buttonpanel">
+	<a class="button load" href="#">load</a>
+	<a class="button save" href="#">save</a>
+	
+	<input style="display: none" class="fileinput" type="file">
+	<div class="rightbuttonpanel">
+		<a class="button newwindow" href="#">open in new window</a>
+		<a class="button reload" href="#">reload</a>
+		<input type="checkbox" id="autoreload" checked="true"> auto-reload
+	</div>
+
+</div>
+
+</div>
+
+<div class="filelist">
+</div>
+
+<div class="editor" data-editor-lang="text_x-php" data-editor-wrap-mode="true" data-editor-wrappable="true">
+</div>
+
+<!--
+<div class="htmlpreviewdiv">
+<div class="title">&nbsp;</div>
+<iframe class="htmlpreview"></iframe></div>
+-->
+
+</body>
+</html>
