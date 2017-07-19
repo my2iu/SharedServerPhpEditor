@@ -1,6 +1,6 @@
 <?php
 include 'authenticate.inc';
-$filename = $_REQUEST['file'];
+$filename = checkDirFileValidAndReturn($_REQUEST['dir'], $_REQUEST['file']);
 // TODO: Validate the file is allowed to be loaded
 try {
 	$filecontents = file_get_contents($filename);

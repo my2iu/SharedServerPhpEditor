@@ -120,6 +120,9 @@ iframe.htmlpreview {
 <script src="stylers/lib/syntax.js"></script> 
 <script>
 var editor;
+var currentFile = null;
+var currentDir = null;
+var csrf;
 function configEditor() {
 	/*global require*/
 	require(["orion/editor/edit"], function(edit) {
@@ -136,7 +139,6 @@ window.onload = function() {
 	loadConfig();
 };
 
-var currentFile = null;
 function loadConfig() {
 	// Load config from the server
 	var req = new XMLHttpRequest();
@@ -155,10 +157,12 @@ function loadConfig() {
 	req.send();
 }
 function configLoaded(config) {
+	currentDir = config.dir;
+	csrf = config.csrf;
 	configEditor();
-	configFileList();
+	configFileList(config.dir);
 }
-function loadFile(fileName) {
+function loadFile(dir, fileName) {
 	// Load config from the server
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
@@ -168,10 +172,10 @@ function loadFile(fileName) {
 			currentFile = fileName;
 		}
 	};
-	req.open('GET', 'loadfile.php?file=' + encodeURIComponent(fileName));
+	req.open('GET', 'loadfile.php?dir=' + encodeURIComponent(dir) + '&file=' + encodeURIComponent(fileName));
 	req.send();	
 }
-function saveFile(file, contentsBlob) {
+function saveFile(dir, file, contentsBlob) {
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
 		if (req.readyState == 4 && req.status == 200) {
@@ -180,10 +184,12 @@ function saveFile(file, contentsBlob) {
 	req.open('POST', 'savefile.php');
 	var formData = new FormData();
 	formData.append('file', file);
+	formData.append('dir', dir);
+	formData.append('csrf', csrf);
 	formData.append('contents', contentsBlob);
 	req.send(formData);	
 }
-function showFileList(fileList) {
+function showFileList(dir, fileList) {
 	var list = document.querySelector('.filelist');
 	list.innerHTML = '';
 	for (var n = 0; n < fileList.length; n++) {
@@ -191,7 +197,7 @@ function showFileList(fileList) {
 		var div = document.createElement('div');
 		div.className = 'filelist_entry';
 		div.onclick = function() {
-			loadFile(fileName);
+			loadFile(dir, fileName);
 		};
 		div.textContent = fileName;
 		list.appendChild(div);
@@ -203,10 +209,10 @@ function configFileList(dir) {
 	req.onreadystatechange = function() {
 		if (req.readyState == 4 && req.status == 200) {
 			var fileList = JSON.parse(req.responseText);
-			showFileList(fileList);
+			showFileList(dir, fileList);
 		}
 	};
-	req.open('GET', 'filelist.php');
+	req.open('GET', 'filelist.php?dir=' + encodeURIComponent(dir));
 	req.send();
 	
 }
@@ -276,7 +282,7 @@ window.addEventListener("load", function(evt) {
 	document.querySelector('a.save').onclick = function(evt) {
 		var text = editor.getText();
 		if (currentFile == null) return;
-		saveFile(currentFile, new Blob([text]));
+		saveFile(currentDir, currentFile, new Blob([text]));
 /*
 		var defaultFileName = 'save.html';
 		if (navigator.msSaveOrOpenBlob != null)

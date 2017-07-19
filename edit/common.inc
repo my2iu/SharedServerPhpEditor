@@ -1,5 +1,19 @@
 <?php
-
+$allowedDirs = array('../');
+function isDirAllowed($dir) {
+	global $allowedDirs;
+	return in_array($dir, $allowedDirs);
+}
+function checkDirValid($dir) {
+	if (!isDirAllowed($dir)) {
+		http_response_code(403);
+		exit;
+	}
+}
+function checkDirFileValidAndReturn($dir, $file) {
+	checkDirValid($dir);
+	return $dir . $file;
+}
 
 function isLoggedIn() {
 	session_start();
@@ -20,10 +34,16 @@ function configureCsrfToken() {
 	}
 	$csrf = $_SESSION['CSRF_TOKEN'];
 }
+function checkCsrf($token) {
+	if (!isCsrfTokenValid($token)) {
+		http_response_code(403);
+		exit;
+	}
+}
 
 function isCsrfTokenValid($token) {
 	global $csrf;
-	return hash_equals($csrf, $_POST['CSRF_TOKEN']);
+	return hash_equals($csrf, $token);
 }
 
 

@@ -3,5 +3,6 @@ include 'authenticate.inc';
 ?>
 
 {
-	"dir": "/var/www/html"
+	"dir": <?php echo json_encode($allowedDirs[0]) ?>,
+	"csrf": <?php echo json_encode($csrf) ?>
 }

@@ -1,7 +1,8 @@
 <?php
 include 'authenticate.inc';
-$files = scandir('/var/www/html/edit');
-
+$dir = $_REQUEST['dir'];
+checkDirValid($dir);
+$files = scandir($dir);
 ?>
 
 [
@@ -12,7 +13,7 @@ $files = scandir('/var/www/html/edit');
 		// Remove hidden files and . and ..
 		if ($file[0] == '.') continue;
 		// Skip directories
-		if (is_dir($file)) continue;
+		if (is_dir($dir . $file)) continue;
 		// Print file
 		if (!$isFirst)
 			echo ', ';
