@@ -1,5 +1,5 @@
 <?php
-include 'authenticate.php';
+include 'authenticate.inc';
 $files = scandir('/var/www/html/edit');
 
 ?>

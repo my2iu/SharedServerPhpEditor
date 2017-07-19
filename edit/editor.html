@@ -141,9 +141,14 @@ function loadConfig() {
 	// Load config from the server
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
-		if (req.readyState == 4 && req.status == 200) {
-			var config = JSON.parse(req.responseText);
-			configLoaded(config);
+		if (req.readyState == 4) {
+			if (req.status == 200) {
+				var config = JSON.parse(req.responseText);
+				configLoaded(config);
+			} else if (req.status == 403) {
+				// Not logged in
+				window.location.href = 'login.php';
+			}
 		}
 	};
 	req.open('GET', 'loadconfig.php');

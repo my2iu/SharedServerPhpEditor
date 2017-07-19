@@ -1,5 +1,5 @@
 <?php
-include 'authenticate.php';
+include 'authenticate.inc';
 $filename = $_REQUEST['file'];
 //$contents = $_REQUEST['contents'];
 $contents = $_FILES['contents'];
