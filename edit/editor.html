@@ -203,6 +203,29 @@ function saveFile(dir, file, contentsBlob) {
 	formData.append('contents', contentsBlob);
 	req.send(formData);	
 }
+function copyFile(dir, file, newFile) {
+	var req = new XMLHttpRequest();
+	req.onreadystatechange = function() {
+		if (req.readyState == 4 && req.status == 200) {
+		}
+	};
+	req.open('GET', 'copydeletefile.php?dir=' + encodeURIComponent(dir) 
+			+ '&file=' + encodeURIComponent(file)
+			+ '&newfile=' + encodeURIComponent(newFile)
+			+ '&csrf=' + encodeURIComponent(csrf));
+	req.send();	
+}
+function deleteFile(dir, file) {
+	var req = new XMLHttpRequest();
+	req.onreadystatechange = function() {
+		if (req.readyState == 4 && req.status == 200) {
+		}
+	};
+	req.open('GET', 'copydeletefile.php?dir=' + encodeURIComponent(dir) 
+			+ '&file=' + encodeURIComponent(file)
+			+ '&csrf=' + encodeURIComponent(csrf));
+	req.send();	
+}
 function showFileList(dir, fileList) {
 	var list = document.querySelector('.filelist');
 	list.innerHTML = '';
@@ -314,6 +337,18 @@ window.addEventListener("load", function(evt) {
 		});
 		input.click();
 	};
+	document.querySelector('a.copy').onclick = function(evt) {
+		evt.preventDefault();
+		if (currentFile == null) return;
+		var name = prompt('Enter new file name', 'file.php');
+		if (name == null) return;
+		copyFile(currentDir, currentFile, name);
+	};
+	document.querySelector('a.delete').onclick = function(evt) {
+		evt.preventDefault();
+		if (currentFile == null) return;
+		deleteFile(currentDir, currentFile);
+	};
 	document.querySelector('a.save').onclick = function(evt) {
 		evt.preventDefault();
 		var text = editor.getText();
@@ -364,7 +399,7 @@ window.addEventListener("load", function(evt) {
 		<div class="divbuttonpadding">
 			<a class="button new" href="#">new</a>
 			<a class="button upload" href="#">upload</a>
-			<a class="button rename" href="#">rename</a>
+			<a class="button copy" href="#">copy</a>
 			<a class="button delete" href="#">delete</a>
 		</div>
 	</div>
