@@ -140,10 +140,10 @@ var editor;
 var currentFile = null;
 var currentDir = null;
 var csrf;
-function configEditor() {
+function startEditor(contents) {
 	/*global require*/
 	require(["orion/editor/edit"], function(edit) {
-		editor = edit({className: "editor"})[0];
+		editor = edit({className: "editor", contents: contents})[0];
 		editor.addEventListener('InputChanged', function(evt) {
 			editorChanged();
 		});
@@ -172,7 +172,7 @@ function loadConfig() {
 function configLoaded(config) {
 	currentDir = config.dir;
 	csrf = config.csrf;
-	configEditor();
+	//configEditor();
 	configFileList(config.dir);
 }
 function loadFile(dir, fileName) {
@@ -180,8 +180,11 @@ function loadFile(dir, fileName) {
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
 		if (req.readyState == 4 && req.status == 200) {
+			if (editor != null)
+				editor.destroy();
 			var file = JSON.parse(req.responseText);
-			editor.setText(file.contents);
+			startEditor(file.contents);
+			//editor.setText(file.contents);
 			currentFile = fileName;
 		}
 	};
