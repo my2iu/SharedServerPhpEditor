@@ -299,7 +299,7 @@ window.addEventListener("load", function(evt) {
 	loadConfig();
 
 	document.querySelector('a.reload').onclick = function(evt) {
-		reloadPreview(true);
+		//reloadPreview(true);
 		evt.preventDefault();
 	};
 	document.querySelector('a.newwindow').onclick = function(evt) {
@@ -310,6 +310,7 @@ window.addEventListener("load", function(evt) {
 		doc.close();
 		evt.preventDefault();
 	};
+	/*
 	document.querySelector('a.load').onclick = function(evt) {
 		var input = document.querySelector('.fileinput');
 		input.addEventListener('change', function(evt) {
@@ -323,6 +324,7 @@ window.addEventListener("load", function(evt) {
 		input.click();
 		evt.preventDefault();
 	};
+	*/
 	document.querySelector('a.new').onclick = function(evt) {
 		evt.preventDefault();
 		var name = prompt('Enter new file name', 'file.php');
@@ -379,14 +381,12 @@ window.addEventListener("load", function(evt) {
 <div class="header">
 <div style="font-weight: bold; font-size: 175%;">Orion Editor</div>
 <div class="buttonpanel">
-	<a class="button load" href="#">load</a>
 	<a class="button save" href="#">save</a>
 	
 	<input style="display: none" class="fileinput" type="file">
 	<div class="rightbuttonpanel">
 		<a class="button newwindow" href="#">open in new window</a>
 		<a class="button reload" href="#">reload</a>
-		<input type="checkbox" id="autoreload" checked="true"> auto-reload
 	</div>
 
 </div>
