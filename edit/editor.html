@@ -43,6 +43,10 @@ div.header {
 	float: right;
 }
 
+.divbuttonpadding {
+	line-height: calc(1em + 1em);
+}
+
 a.button:link,
 a.button:active,
 a.button:visited {
@@ -71,17 +75,25 @@ div.editor {
 	background-color: white;
 }
 
-div.filelist {
+div.filelistpanel {
 	position: absolute;
 	left: 0px;
 	top: 5em;
 	width: 25%;
 	height: calc(100% - 5em);
-	overflow: auto;
 	border: 0px;
 	margin: 0px;
-	padding: 0.25em;
+	display: flex;
+	flex-direction: column;
 }
+
+div.filelist {
+	padding: 0.25em;
+	padding-top: 0.5em;
+	overflow: auto;
+	flex-grow: 1;
+}
+
 /*
 div.htmlpreviewdiv {
 	position: absolute;
@@ -112,7 +124,11 @@ iframe.htmlpreview {
 }
 .filelist_entry {
 	cursor: pointer;
-	margin-bottom: 0.5em;
+	padding-top: 0.25em;
+	padding-bottom: 0.25em;
+}
+.filelist_entry_selected {
+	background-color: lightgrey;
 }
 </style>
 <link rel="stylesheet" type="text/css" href="orion/built-editor.css"/>
@@ -135,10 +151,6 @@ function configEditor() {
 		editor.getModel().addEventListener('Changed', function(evt) {editorChanged();});
 	});
 }
-
-window.onload = function() {
-	loadConfig();
-};
 
 function loadConfig() {
 	// Load config from the server
@@ -173,7 +185,8 @@ function loadFile(dir, fileName) {
 			currentFile = fileName;
 		}
 	};
-	req.open('GET', 'loadfile.php?dir=' + encodeURIComponent(dir) + '&file=' + encodeURIComponent(fileName));
+	req.open('GET', 'loadfile.php?dir=' + encodeURIComponent(dir) 
+			+ '&file=' + encodeURIComponent(fileName));
 	req.send();	
 }
 function saveFile(dir, file, contentsBlob) {
@@ -195,9 +208,14 @@ function showFileList(dir, fileList) {
 	list.innerHTML = '';
 	for (var n = 0; n < fileList.length; n++) {
 		let fileName = fileList[n];
-		var div = document.createElement('div');
+		let div = document.createElement('div');
 		div.className = 'filelist_entry';
 		div.onclick = function() {
+			var entries = document.querySelector('.filelist').querySelectorAll('.filelist_entry');
+			for (var i = 0; i < entries.length; i++) {
+				entries[i].classList.remove('filelist_entry_selected');
+			}
+			div.classList.add('filelist_entry_selected');
 			loadFile(dir, fileName);
 		};
 		div.textContent = fileName;
@@ -255,10 +273,12 @@ function reloadPreview(isForceReload)
 */
 
 window.addEventListener("load", function(evt) {
+	loadConfig();
+
 	document.querySelector('a.reload').onclick = function(evt) {
 		reloadPreview(true);
 		evt.preventDefault();
-	}
+	};
 	document.querySelector('a.newwindow').onclick = function(evt) {
 		var win = window.open();
 		var doc = win.document;
@@ -266,7 +286,7 @@ window.addEventListener("load", function(evt) {
 		doc.write(editor.getText());
 		doc.close();
 		evt.preventDefault();
-	}
+	};
 	document.querySelector('a.load').onclick = function(evt) {
 		var input = document.querySelector('.fileinput');
 		input.addEventListener('change', function(evt) {
@@ -279,8 +299,23 @@ window.addEventListener("load", function(evt) {
 		});
 		input.click();
 		evt.preventDefault();
-	}
+	};
+	document.querySelector('a.new').onclick = function(evt) {
+		evt.preventDefault();
+		var name = prompt('Enter new file name', 'file.php');
+		if (name == null) return;
+		saveFile(currentDir, name, new Blob(['']));
+	};
+	document.querySelector('a.upload').onclick = function(evt) {
+		evt.preventDefault();
+		var input = document.querySelector('.fileinput');
+		input.addEventListener('change', function(evt) {
+			saveFile(currentDir, input.files[0].name, input.files[0]);
+		});
+		input.click();
+	};
 	document.querySelector('a.save').onclick = function(evt) {
+		evt.preventDefault();
 		var text = editor.getText();
 		if (currentFile == null) return;
 		saveFile(currentDir, currentFile, new Blob([text]));
@@ -299,7 +334,7 @@ window.addEventListener("load", function(evt) {
 			anchor.href = uri;
 		}
 */
-	}
+	};
 
 });
 </script>
@@ -323,7 +358,17 @@ window.addEventListener("load", function(evt) {
 
 </div>
 
-<div class="filelist">
+<div class="filelistpanel">
+	<div style="border-bottom: 1px solid black; flex-grow: 0; background-color: lightgrey;">
+		<div style="font-weight: bold; font-size: 120%;">Files</div>
+		<div class="divbuttonpadding">
+			<a class="button new" href="#">new</a>
+			<a class="button upload" href="#">upload</a>
+			<a class="button rename" href="#">rename</a>
+			<a class="button delete" href="#">delete</a>
+		</div>
+	</div>
+	<div class="filelist"></div>
 </div>
 
 <div class="editor" data-editor-lang="text_x-php" data-editor-wrap-mode="true" data-editor-wrappable="true">
