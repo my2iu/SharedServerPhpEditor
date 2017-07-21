@@ -64,6 +64,13 @@ a.button:hover {
 	border: 2px solid white;
 }
 
+a.disabled:link,
+a.disabled:active,
+a.disabled:visited,
+a.disabled:hover {
+	color: #bbb;
+}
+
 div.editor {
 	position: absolute;
 	right: 0px;
@@ -134,16 +141,23 @@ iframe.htmlpreview {
 <link rel="stylesheet" type="text/css" href="orion/built-editor.css"/>
 <script src="orion/built-editor.js"></script>
 <script src="stylers/text_x-php/syntax.js"></script> 
+<script src="stylers/text_html/syntax.js"></script> 
+<script src="stylers/text_css/syntax.js"></script> 
+<script src="stylers/application_javascript/syntax.js"></script> 
+<script src="stylers/application_xml/syntax.js"></script> 
 <script src="stylers/lib/syntax.js"></script> 
 <script>
 var editor;
 var currentFile = null;
 var currentDir = null;
+var currentFileIsDirty = false;
 var csrf;
-function startEditor(contents) {
+function startEditor(contents, lang) {
 	/*global require*/
+	currentFileIsDirty = false;
+	updateButtonStates();
 	require(["orion/editor/edit"], function(edit) {
-		editor = edit({className: "editor", contents: contents})[0];
+		editor = edit({className: "editor", contents: contents, lang: lang})[0];
 		editor.addEventListener('InputChanged', function(evt) {
 			editorChanged();
 		});
@@ -173,31 +187,44 @@ function configLoaded(config) {
 	currentDir = config.dir;
 	csrf = config.csrf;
 	//configEditor();
-	configFileList(config.dir);
+	loadFileList(config.dir);
 }
 function loadFile(dir, fileName) {
 	// Load config from the server
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
 		if (req.readyState == 4 && req.status == 200) {
-			if (editor != null)
-				editor.destroy();
 			var file = JSON.parse(req.responseText);
-			startEditor(file.contents);
-			//editor.setText(file.contents);
+			var type = '';
+			if (fileName.endsWith('.php'))
+				type = 'text_x-php';
+			else if (fileName.endsWith('.html'))
+				type = 'html';
+			else if (fileName.endsWith('.css'))
+				type = 'css';
 			currentFile = fileName;
+			startEditor(file.contents, type);
+			//editor.setText(file.contents);
 		}
 	};
 	req.open('GET', 'loadfile.php?dir=' + encodeURIComponent(dir) 
 			+ '&file=' + encodeURIComponent(fileName));
 	req.send();	
 }
-function saveFile(dir, file, contentsBlob) {
+function saveFile(dir, file, contentsBlob, onsuccess, onerror) {
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
-		if (req.readyState == 4 && req.status == 200) {
+		if (req.readyState == 4) {
+			if (req.status == 200) {
+				if (onsuccess != null) onsuccess();
+			} else {
+				if (onerror != null) onerror();
+			}
 		}
 	};
+	if (onerror != null) {
+		req.onerror = onerror;
+	}
 	req.open('POST', 'savefile.php');
 	var formData = new FormData();
 	formData.append('file', file);
@@ -206,10 +233,11 @@ function saveFile(dir, file, contentsBlob) {
 	formData.append('contents', contentsBlob);
 	req.send(formData);	
 }
-function copyFile(dir, file, newFile) {
+function copyFile(dir, file, newFile, onsuccess) {
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
 		if (req.readyState == 4 && req.status == 200) {
+			if (onsuccess != null) onsuccess();
 		}
 	};
 	req.open('GET', 'copydeletefile.php?dir=' + encodeURIComponent(dir) 
@@ -218,10 +246,11 @@ function copyFile(dir, file, newFile) {
 			+ '&csrf=' + encodeURIComponent(csrf));
 	req.send();	
 }
-function deleteFile(dir, file) {
+function deleteFile(dir, file, onsuccess) {
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
 		if (req.readyState == 4 && req.status == 200) {
+			if (onsuccess != null) onsuccess();
 		}
 	};
 	req.open('GET', 'copydeletefile.php?dir=' + encodeURIComponent(dir) 
@@ -229,7 +258,43 @@ function deleteFile(dir, file) {
 			+ '&csrf=' + encodeURIComponent(csrf));
 	req.send();	
 }
-function showFileList(dir, fileList) {
+function saveCurrentFileIfNecessary(onsuccess) {
+	if (currentFile != null && currentFileIsDirty) {
+		var text = editor.getText();
+		saveFile(currentDir, currentFile, new Blob([text]), 
+				function() {
+					if (currentFileIsDirty) return;
+					onsuccess();
+				}, 
+				function() {
+					// Save failed
+					alert('save failed');
+					currentFileIsDirty = true;
+					updateButtonStates();
+				});
+		currentFileIsDirty = false;
+		updateButtonStates();
+	} else {
+		onsuccess();
+	}
+}
+function fileChosen(div, fileName) {
+	saveCurrentFileIfNecessary(function() {
+		highlightChosenFile(div);
+		clearEditor();
+		loadFile(currentDir, fileName);
+	});
+}
+function highlightChosenFile(selectedDiv) {
+	var entries = document
+			.querySelector('.filelist')
+			.querySelectorAll('.filelist_entry');
+	for (var i = 0; i < entries.length; i++) {
+		entries[i].classList.remove('filelist_entry_selected');
+	}
+	selectedDiv.classList.add('filelist_entry_selected');
+}
+function showFileList(dir, fileList, selectedFile) {
 	var list = document.querySelector('.filelist');
 	list.innerHTML = '';
 	for (var n = 0; n < fileList.length; n++) {
@@ -237,24 +302,21 @@ function showFileList(dir, fileList) {
 		let div = document.createElement('div');
 		div.className = 'filelist_entry';
 		div.onclick = function() {
-			var entries = document.querySelector('.filelist').querySelectorAll('.filelist_entry');
-			for (var i = 0; i < entries.length; i++) {
-				entries[i].classList.remove('filelist_entry_selected');
-			}
-			div.classList.add('filelist_entry_selected');
-			loadFile(dir, fileName);
+			fileChosen(div, fileName);
 		};
 		div.textContent = fileName;
+		if (selectedFile == fileName) 
+			div.classList.add('filelist_entry_selected');
 		list.appendChild(div);
 	}
 }
-function configFileList(dir) {
+function loadFileList(dir) {
 	// Load file list from the server
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
 		if (req.readyState == 4 && req.status == 200) {
 			var fileList = JSON.parse(req.responseText);
-			showFileList(dir, fileList);
+			showFileList(dir, fileList, currentFile);
 		}
 	};
 	req.open('GET', 'filelist.php?dir=' + encodeURIComponent(dir));
@@ -262,10 +324,33 @@ function configFileList(dir) {
 	
 }
 
-</script>
-<script>
+function updateButtonStates() {
+	if (currentFileIsDirty)
+		document.querySelector('a.save').classList.remove('disabled');
+	else
+		document.querySelector('a.save').classList.add('disabled');
+	if (currentFile != null) {
+		document.querySelector('a.copy').classList.remove('disabled');
+		document.querySelector('a.delete').classList.remove('disabled');
+	} else {
+		document.querySelector('a.copy').classList.add('disabled');
+		document.querySelector('a.delete').classList.add('disabled');
+	}
+}
+
+function clearEditor()
+{
+	if (editor != null)
+		editor.destroy();
+	editor = null;
+	currentFile = null;
+	currentFileIsDirty = false;
+}
+
 function editorChanged()
 {
+	currentFileIsDirty = true;
+	updateButtonStates();
 //	if (document.getElementById('autoreload').checked)
 //		reloadPreview(false);
 }
@@ -300,6 +385,7 @@ function reloadPreview(isForceReload)
 
 window.addEventListener("load", function(evt) {
 	loadConfig();
+	updateButtonStates();
 
 	document.querySelector('a.reload').onclick = function(evt) {
 		//reloadPreview(true);
@@ -330,35 +416,65 @@ window.addEventListener("load", function(evt) {
 	*/
 	document.querySelector('a.new').onclick = function(evt) {
 		evt.preventDefault();
-		var name = prompt('Enter new file name', 'file.php');
-		if (name == null) return;
-		saveFile(currentDir, name, new Blob(['']));
+		saveCurrentFileIfNecessary(function() {
+			var name = prompt('Enter new file name', 'file.php');
+			if (name == null) return;
+			saveFile(currentDir, name, new Blob(['']), 
+				function() {
+					loadFileList(currentDir);
+				});
+		});
+
 	};
 	document.querySelector('a.upload').onclick = function(evt) {
 		evt.preventDefault();
 		var input = document.querySelector('.fileinput');
 		input.addEventListener('change', function(evt) {
-			saveFile(currentDir, input.files[0].name, input.files[0]);
+			saveCurrentFileIfNecessary(function() {
+				saveFile(currentDir, input.files[0].name, input.files[0],
+					function() {
+						loadFileList(currentDir);
+					});
+			});
 		});
 		input.click();
 	};
 	document.querySelector('a.copy').onclick = function(evt) {
 		evt.preventDefault();
 		if (currentFile == null) return;
-		var name = prompt('Enter new file name', 'file.php');
-		if (name == null) return;
-		copyFile(currentDir, currentFile, name);
+		saveCurrentFileIfNecessary(function() {
+			var name = prompt('Enter new file name', 'file.php');
+			if (name == null) return;
+			copyFile(currentDir, currentFile, name, 
+				function() {
+					loadFileList(currentDir);
+				});
+		});
 	};
 	document.querySelector('a.delete').onclick = function(evt) {
 		evt.preventDefault();
 		if (currentFile == null) return;
-		deleteFile(currentDir, currentFile);
+		var fileToDelete = currentFile;
+		clearEditor();
+		deleteFile(currentDir, fileToDelete, function() {
+			loadFileList(currentDir);
+		});
 	};
 	document.querySelector('a.save').onclick = function(evt) {
 		evt.preventDefault();
 		var text = editor.getText();
 		if (currentFile == null) return;
-		saveFile(currentDir, currentFile, new Blob([text]));
+		saveFile(currentDir, currentFile, new Blob([text]), 
+				function() {
+				}, 
+				function() {
+					// Save failed
+					alert('save failed');
+					currentFileIsDirty = true;
+					updateButtonStates();
+				});
+		currentFileIsDirty = false;
+		updateButtonStates();
 /*
 		var defaultFileName = 'save.html';
 		if (navigator.msSaveOrOpenBlob != null)
@@ -409,7 +525,7 @@ window.addEventListener("load", function(evt) {
 	<div class="filelist"></div>
 </div>
 
-<div class="editor" data-editor-lang="text_x-php" data-editor-wrap-mode="true" data-editor-wrappable="true">
+<div class="editor" data-editor-wrap-mode="true" data-editor-wrappable="true">
 </div>
 
 <!--

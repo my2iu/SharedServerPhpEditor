@@ -11,7 +11,10 @@ $contents = $_FILES['contents'];
 // TODO: better error checking
 //fwrite($f, $contents);
 //fclose($f);
-move_uploaded_file($_FILES['contents']['tmp_name'], $filename);
+if (!move_uploaded_file($_FILES['contents']['tmp_name'], $filename)) {
+	http_response_code(400);
+	exit;
+}
 ?>
 
 {
