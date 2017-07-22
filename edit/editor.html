@@ -152,6 +152,7 @@ var currentFile = null;
 var currentDir = null;
 var currentFileIsDirty = false;
 var csrf;
+var previewDir;
 function startEditor(contents, lang) {
 	/*global require*/
 	currentFileIsDirty = false;
@@ -186,6 +187,7 @@ function loadConfig() {
 function configLoaded(config) {
 	currentDir = config.dir;
 	csrf = config.csrf;
+	previewDir = config.preview;
 	//configEditor();
 	loadFileList(config.dir);
 }
@@ -387,17 +389,27 @@ window.addEventListener("load", function(evt) {
 	loadConfig();
 	updateButtonStates();
 
+	/*
 	document.querySelector('a.reload').onclick = function(evt) {
 		//reloadPreview(true);
 		evt.preventDefault();
 	};
+	*/
 	document.querySelector('a.newwindow').onclick = function(evt) {
+		if (currentFile == null) {
+			document.querySelector('a.newwindow').href = 'javascript:void(0)';
+			evt.preventDefault();
+		} else {
+			document.querySelector('a.newwindow').href = previewDir + currentFile;
+		}
+		/*
 		var win = window.open();
 		var doc = win.document;
 		doc.open();
 		doc.write(editor.getText());
 		doc.close();
 		evt.preventDefault();
+		*/
 	};
 	/*
 	document.querySelector('a.load').onclick = function(evt) {
@@ -504,8 +516,8 @@ window.addEventListener("load", function(evt) {
 	
 	<input style="display: none" class="fileinput" type="file">
 	<div class="rightbuttonpanel">
-		<a class="button newwindow" href="#">open in new window</a>
-		<a class="button reload" href="#">reload</a>
+		<a class="button newwindow" href="#" target="_blank">preview in new window</a>
+<!--		<a class="button reload" href="#">reload</a> -->
 	</div>
 
 </div>
