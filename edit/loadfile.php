@@ -12,8 +12,16 @@ try {
 	http_response_code(404);
 	exit;
 }
+
+$contentsString = json_encode($filecontents);
+if ($contentsString === false) {
+	// Data can't be encoded
+	http_response_code(400);
+	exit;
+}
 ?>
 
 {
-	"contents": <?php echo json_encode($filecontents); ?>
+	"contents": <?php echo $contentsString; ?>
+
 }

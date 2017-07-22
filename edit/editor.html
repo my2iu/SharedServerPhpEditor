@@ -80,6 +80,7 @@ div.editor {
 	border: 1px solid black;
 	margin: 0px;
 	background-color: white;
+	overflow: auto;
 }
 
 div.filelistpanel {
@@ -284,7 +285,13 @@ function fileChosen(div, fileName) {
 	saveCurrentFileIfNecessary(function() {
 		highlightChosenFile(div);
 		clearEditor();
-		loadFile(currentDir, fileName);
+		if (fileName.endsWith('.png') || fileName.endsWith('.jpeg')
+			|| fileName.endsWith('.jpg')) {
+			document.querySelector('.editor').innerHTML =
+				'<img src="' + (previewDir + fileName) + '">';	
+		}
+		else
+			loadFile(currentDir, fileName);
 	});
 }
 function highlightChosenFile(selectedDiv) {
