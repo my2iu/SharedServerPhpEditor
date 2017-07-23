@@ -1,6 +1,6 @@
 <?php 
 function insertDb($data) {
-	$db = new sQLite3('db/listdb');
+	$db = new sQLite3('../db/listdb');
 	if (!$db) {
 		echo $db->lastErrorMsg();
 		return false;
@@ -18,7 +18,7 @@ function insertDb($data) {
 }
 
 function getDb() {
-	$db = new sQLite3('db/listdb');
+	$db = new sQLite3('../db/listdb');
 	if (!$db) {
 		echo $db->lastErrorMsg();
 		return false;

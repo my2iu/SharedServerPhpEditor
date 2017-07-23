@@ -154,9 +154,12 @@ var currentDir = null;
 var currentFileIsDirty = false;
 var csrf;
 var previewDir;
+var isSaving = false;
+var saveTimer = null;
+var AUTOSAVE_INTERVAL = 5000;
 function startEditor(contents, lang) {
 	/*global require*/
-	currentFileIsDirty = false;
+	setDirty(false);
 	updateButtonStates();
 	require(["orion/editor/edit"], function(edit) {
 		editor = edit({className: "editor", contents: contents, lang: lang})[0];
@@ -262,20 +265,25 @@ function deleteFile(dir, file, onsuccess) {
 	req.send();	
 }
 function saveCurrentFileIfNecessary(onsuccess) {
+	if (isSaving) return;
 	if (currentFile != null && currentFileIsDirty) {
 		var text = editor.getText();
+		isSaving = true;
 		saveFile(currentDir, currentFile, new Blob([text]), 
 				function() {
+					isSaving = false;
+					updateButtonStates();
 					if (currentFileIsDirty) return;
 					onsuccess();
 				}, 
 				function() {
-					// Save failed
+					// Save failed$a
+					isSaving = false;
 					alert('save failed');
-					currentFileIsDirty = true;
+					setDirty(true);
 					updateButtonStates();
 				});
-		currentFileIsDirty = false;
+		setDirty(false);
 		updateButtonStates();
 	} else {
 		onsuccess();
@@ -333,11 +341,32 @@ function loadFileList(dir) {
 	
 }
 
+function setDirty(dirtyState) {
+	currentFileIsDirty = dirtyState;
+	if (dirtyState) {
+		if (saveTimer == null) {
+			saveTimer = setTimeout(function() {
+				saveCurrentFileIfNecessary(function() {});
+			}, AUTOSAVE_INTERVAL);
+		}
+	} else {
+		if (saveTimer != null) {
+			clearTimeout(saveTimer);
+			saveTimer = null;
+		}
+	}
+}
 function updateButtonStates() {
-	if (currentFileIsDirty)
-		document.querySelector('a.save').classList.remove('disabled');
-	else
+	if (isSaving) {
 		document.querySelector('a.save').classList.add('disabled');
+		document.querySelector('a.save').textContent = 'Saving';
+	} else if (currentFileIsDirty) {
+		document.querySelector('a.save').classList.remove('disabled');
+		document.querySelector('a.save').textContent = 'Save';
+	} else {
+		document.querySelector('a.save').classList.add('disabled');
+		document.querySelector('a.save').textContent = 'Saved';
+	}
 	if (currentFile != null) {
 		document.querySelector('a.copy').classList.remove('disabled');
 		document.querySelector('a.delete').classList.remove('disabled');
@@ -353,12 +382,12 @@ function clearEditor()
 		editor.destroy();
 	editor = null;
 	currentFile = null;
-	currentFileIsDirty = false;
+	setDirty(false);
 }
 
 function editorChanged()
 {
-	currentFileIsDirty = true;
+	setDirty(true);
 	updateButtonStates();
 //	if (document.getElementById('autoreload').checked)
 //		reloadPreview(false);
@@ -483,16 +512,20 @@ window.addEventListener("load", function(evt) {
 		evt.preventDefault();
 		var text = editor.getText();
 		if (currentFile == null) return;
+		isSaving = true;
 		saveFile(currentDir, currentFile, new Blob([text]), 
 				function() {
+					isSaving = false;
+					updateButtonStates();
 				}, 
 				function() {
 					// Save failed
+					isSaving = false;
 					alert('save failed');
-					currentFileIsDirty = true;
+					setDirty(true);
 					updateButtonStates();
 				});
-		currentFileIsDirty = false;
+		setDirty(false);
 		updateButtonStates();
 /*
 		var defaultFileName = 'save.html';
@@ -517,12 +550,12 @@ window.addEventListener("load", function(evt) {
 <body>
 
 <div class="header">
-<div style="font-weight: bold; font-size: 175%;">Orion Editor</div>
+<div style="font-weight: bold; font-size: 175%;">PHP Editor</div>
 <div class="buttonpanel">
-	<a class="button save" href="#">save</a>
 	
 	<input style="display: none" class="fileinput" type="file">
 	<div class="rightbuttonpanel">
+		<a class="button save" href="#">save</a>
 		<a class="button newwindow" href="#" target="_blank">preview in new window</a>
 <!--		<a class="button reload" href="#">reload</a> -->
 	</div>
