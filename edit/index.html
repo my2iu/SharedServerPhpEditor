@@ -24,7 +24,7 @@ div.header {
 	position: absolute;
 	top: 0px;
 	width: calc(100% - 1em);
-	height: 4em;
+	height: 2.5em;
 	left: 0px;
 	padding: 0.5em;
 	background-color: lightgrey;
@@ -35,16 +35,34 @@ div.header {
 	position: absolute; 
 	width: calc(100% - 1em); 
 	bottom: 0px; 
-	padding: 0.5em;
 	left: 0px;
 }
 
-.rightbuttonpanel{
-	float: right;
+.lefttitlepanel {
+	font-weight: bold; 
+	font-size: 175%; 
+	position: absolute;
+	left: 0px;
+	bottom: 0px;
+	padding: 0.2em;
+
+}
+.rightbuttonpanel {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	padding: 0.5em;
 }
 
 .divbuttonpadding {
 	line-height: calc(1em + 1em);
+}
+
+.filesheadingpanel {
+	border-bottom: 1px solid black; 
+	flex-grow: 0; 
+	background-color: lightgrey;
+	padding: 0.2em;
 }
 
 a.button:link,
@@ -74,9 +92,9 @@ a.disabled:hover {
 div.editor {
 	position: absolute;
 	right: 0px;
-	top: 5em;
+	top: 3.5em;
 	width: 75%;
-	height: calc(100% - 5em - 2px);
+	height: calc(100% - 3.5em - 2px);
 	border: 1px solid black;
 	margin: 0px;
 	background-color: white;
@@ -86,18 +104,21 @@ div.editor {
 div.filelistpanel {
 	position: absolute;
 	left: 0px;
-	top: 5em;
+	top: 3.5em;
 	width: 25%;
-	height: calc(100% - 5em);
+	height: calc(100% - 3.5em - 1px);
 	border: 0px;
+	border-bottom: 1px solid black;
 	margin: 0px;
 	display: flex;
 	flex-direction: column;
 }
 
 div.filelist {
-	padding: 0.25em;
 	padding-top: 0.5em;
+	padding-left: 0em;
+	padding-right: 0em;
+	padding-bottom: 0.25em;
 	overflow: auto;
 	flex-grow: 1;
 }
@@ -134,6 +155,7 @@ iframe.htmlpreview {
 	cursor: pointer;
 	padding-top: 0.25em;
 	padding-bottom: 0.25em;
+	padding-left: 0.2em;
 }
 .filelist_entry_selected {
 	background-color: lightgrey;
@@ -550,9 +572,8 @@ window.addEventListener("load", function(evt) {
 <body>
 
 <div class="header">
-<div style="font-weight: bold; font-size: 175%;">PHP Editor</div>
 <div class="buttonpanel">
-	
+	<div class="lefttitlepanel">PHP Editor</div>
 	<input style="display: none" class="fileinput" type="file">
 	<div class="rightbuttonpanel">
 		<a class="button save" href="#">save</a>
@@ -565,7 +586,7 @@ window.addEventListener("load", function(evt) {
 </div>
 
 <div class="filelistpanel">
-	<div style="border-bottom: 1px solid black; flex-grow: 0; background-color: lightgrey;">
+	<div class="filesheadingpanel">
 		<div style="font-weight: bold; font-size: 120%;">Files</div>
 		<div class="divbuttonpadding">
 			<a class="button new" href="#">new</a>
