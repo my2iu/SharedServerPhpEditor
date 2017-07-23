@@ -3,7 +3,7 @@ include 'authenticate.inc';
 checkCsrf($_REQUEST['csrf']);
 $filename = checkDirFileValidAndReturn($_REQUEST['dir'], $_REQUEST['file']);
 //$contents = $_REQUEST['contents'];
-sleep(3);
+//sleep(3);
 $contents = $_FILES['contents'];
 // TODO: Validate the file is allowed to be saved
 // TODO: Validate the file name
