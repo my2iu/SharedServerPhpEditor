@@ -23,7 +23,7 @@ body {
 div.header {
 	position: absolute;
 	top: 0px;
-	width: calc(100% - 1em);
+	right: 0px;
 	height: 2.5em;
 	left: 0px;
 	padding: 0.5em;
@@ -33,9 +33,10 @@ div.header {
 
 .buttonpanel {
 	position: absolute; 
-	width: calc(100% - 1em); 
 	bottom: 0px; 
 	left: 0px;
+	top: 0px;
+	right: 0px;
 }
 
 .lefttitlepanel {
@@ -51,7 +52,22 @@ div.header {
 	position: absolute;
 	bottom: 0px;
 	right: 0px;
-	padding: 0.5em;
+	padding-left: 0.5em;
+	padding-bottom: 0.5em;
+	padding-right: 0.5rem;
+}
+.rightlogoutpanel {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	font-size: 80%;
+	padding-right: 0.5rem;
+}
+.rightlogoutpanel a:link,
+.rightlogoutpanel a:active,
+.rightlogoutpanel a:visited,
+.rightlogoutpanel a:hover {
+	color: black;
 }
 
 .divbuttonpadding {
@@ -178,7 +194,7 @@ var csrf;
 var previewDir;
 var isSaving = false;
 var saveTimer = null;
-var AUTOSAVE_INTERVAL = 5000;
+var autosaveInterval = 5000;
 function startEditor(contents, lang) {
 	/*global require*/
 	setDirty(false);
@@ -299,9 +315,10 @@ function saveCurrentFileIfNecessary(onsuccess) {
 					onsuccess();
 				}, 
 				function() {
-					// Save failed$a
+					// Save failed
 					isSaving = false;
 					alert('save failed');
+					autosaveInterval *= 2;
 					setDirty(true);
 					updateButtonStates();
 				});
@@ -369,7 +386,7 @@ function setDirty(dirtyState) {
 		if (saveTimer == null) {
 			saveTimer = setTimeout(function() {
 				saveCurrentFileIfNecessary(function() {});
-			}, AUTOSAVE_INTERVAL);
+			}, autosaveInterval);
 		}
 	} else {
 		if (saveTimer != null) {
@@ -544,6 +561,7 @@ window.addEventListener("load", function(evt) {
 					// Save failed
 					isSaving = false;
 					alert('save failed');
+					autosaveInterval *= 2;
 					setDirty(true);
 					updateButtonStates();
 				});
@@ -575,6 +593,9 @@ window.addEventListener("load", function(evt) {
 <div class="buttonpanel">
 	<div class="lefttitlepanel">PHP Editor</div>
 	<input style="display: none" class="fileinput" type="file">
+	<div class="rightlogoutpanel">
+		<a href="logout.php">logout</a>
+	</div>
 	<div class="rightbuttonpanel">
 		<a class="button save" href="#">save</a>
 		<a class="button newwindow" href="#" target="_blank">preview in new window</a>
