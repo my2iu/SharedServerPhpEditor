@@ -1,5 +1,3 @@
 #!/bin/sh
-USER=$1
-useradd -m $USER
-echo -n $USER " " >> passwordlist
-apg -n 1 | tee -a passwordlist > /home/$USER/public_html/edit/password
+useradd -m $1
+echo -n $2 > /home/$1/public_html/edit/password
