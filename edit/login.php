@@ -2,9 +2,9 @@
 require_once 'common.inc';
 if (isset($_REQUEST['password']) and $_REQUEST['password'] == trim(file_get_contents('password'))):
 	login();	
-	header('Location: editor.html');
+	header('Location: .');
 elseif (isLoggedIn()): 
-	header('Location: editor.html');
+	header('Location: .');
 else: ?>
 	<?php if (isset($_REQUEST['password'])):  ?>
 		<div style="color: red;">Password incorrect</div>
