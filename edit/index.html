@@ -117,6 +117,52 @@ div.editor {
 	overflow: auto;
 }
 
+div.previewframe {
+	display: none;
+	position: absolute;
+	right: 0px;
+	top: 3.5em;
+	width: 75%;
+	height: calc(100% - 3.5em - 2px);
+	border: 1px solid black;
+	margin: 0px;
+	background-color: white;
+	overflow: auto;
+}
+
+div.previewframe iframe {
+	position: absolute;
+	top: 2.5em;
+	width: 100%;
+	height: calc(100% - 2.5em);
+	border: 0px;
+}
+
+div.previewframe .previewheading {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	height: calc(2.5em - 1px);
+	border-bottom: 1px solid black;
+	background-color: darkgrey;
+	color: white;
+	padding: 0.5em;
+	box-sizing: border-box;
+}
+
+div.previewframe .previewheadingbuttons {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	padding: 0.5em;
+}
+
+div.previewframe .previewheadingtitle {
+	font-weight: bold;
+	font-size: 110%;
+}
+
 div.filelistpanel {
 	position: absolute;
 	left: 0px;
@@ -189,6 +235,7 @@ iframe.htmlpreview {
 var editor;
 var currentFile = null;
 var currentDir = null;
+var currentAbsoluteDir = null;
 var currentFileIsDirty = false;
 var csrf;
 var previewDir;
@@ -198,6 +245,8 @@ var autosaveInterval = 5000;
 function startEditor(contents, lang) {
 	/*global require*/
 	setDirty(false);
+	document.querySelector('.editor').style.display = 'block';
+	document.querySelector('.previewframe').style.display = 'none';
 	updateButtonStates();
 	require(["orion/editor/edit"], function(edit) {
 		editor = edit({className: "editor", contents: contents, lang: lang})[0];
@@ -228,6 +277,9 @@ function loadConfig() {
 }
 function configLoaded(config) {
 	currentDir = config.dir;
+	var anchorForUrlMunging = document.createElement('a');
+	anchorForUrlMunging.href = currentDir;
+	currentAbsoluteDir = anchorForUrlMunging.cloneNode(false).href;
 	csrf = config.csrf;
 	previewDir = config.preview;
 	//configEditor();
@@ -334,8 +386,10 @@ function fileChosen(div, fileName) {
 		clearEditor();
 		if (fileName.endsWith('.png') || fileName.endsWith('.jpeg')
 			|| fileName.endsWith('.jpg')) {
+			currentFile = fileName;
 			document.querySelector('.editor').innerHTML =
 				'<img src="' + (previewDir + fileName) + '">';	
+			updateButtonStates();
 		}
 		else
 			loadFile(currentDir, fileName);
@@ -409,9 +463,11 @@ function updateButtonStates() {
 	if (currentFile != null) {
 		document.querySelector('a.copy').classList.remove('disabled');
 		document.querySelector('a.delete').classList.remove('disabled');
+		document.querySelector('a.preview').classList.remove('disabled');
 	} else {
 		document.querySelector('a.copy').classList.add('disabled');
 		document.querySelector('a.delete').classList.add('disabled');
+		document.querySelector('a.preview').classList.add('disabled');
 	}
 }
 
@@ -477,6 +533,38 @@ window.addEventListener("load", function(evt) {
 		} else {
 			document.querySelector('a.newwindow').href = previewDir + currentFile;
 		}
+		/*
+		var win = window.open();
+		var doc = win.document;
+		doc.open();
+		doc.write(editor.getText());
+		doc.close();
+		evt.preventDefault();
+		*/
+	};
+	document.querySelector('.previewframe').style.display = 'none';
+	document.querySelector('a.preview').onclick = function(evt) {
+		evt.preventDefault();
+		if (currentFile == null) return;
+		saveCurrentFileIfNecessary(function() {
+			if (document.querySelector('.previewframe').style.display == 'none') {
+				document.querySelector('.editor').style.display = 'none';
+				var oldSrc = document.querySelector('.previewframe iframe').src;
+				if (oldSrc == previewDir + currentFile)
+					document.querySelector('.previewframe iframe').contentWindow.location.reload();
+				else	
+					document.querySelector('.previewframe iframe').src = 
+						previewDir + currentFile;
+				document.querySelector('.previewframe').style.display = 'block';
+				document.querySelector('.previewheadingtitle').textContent = 
+						currentAbsoluteDir + currentFile;
+			}
+			else
+			{
+				document.querySelector('.editor').style.display = 'block';
+				document.querySelector('.previewframe').style.display = 'none';
+			}
+		});
 		/*
 		var win = window.open();
 		var doc = win.document;
@@ -597,8 +685,8 @@ window.addEventListener("load", function(evt) {
 		<a href="logout.php">logout</a>
 	</div>
 	<div class="rightbuttonpanel">
+		<a class="button preview" href="#">preview/edit</a>
 		<a class="button save" href="#">save</a>
-		<a class="button newwindow" href="#" target="_blank">preview in new window</a>
 <!--		<a class="button reload" href="#">reload</a> -->
 	</div>
 
@@ -620,6 +708,16 @@ window.addEventListener("load", function(evt) {
 </div>
 
 <div class="editor" data-editor-wrap-mode="true" data-editor-wrappable="true">
+</div>
+
+<div class="previewframe">
+<div class="previewheading">
+	<span class="previewheadingtitle"></span>
+	<div class="previewheadingbuttons">
+		<a class="button newwindow" href="#" target="_blank">new window</a>
+	</div>
+</div>
+<iframe></iframe>
 </div>
 
 <!--
