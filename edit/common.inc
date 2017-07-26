@@ -9,7 +9,7 @@ function configureSessionCookiePath() {
 	$pathParts = explode('/', $_SERVER['REQUEST_URI']);
 	if (count($pathParts) > 1 and $pathParts[0] == '' and 
 			0 === strpos($pathParts[1], '~')) {
-		session_set_cookie_params(60 * 60, '/' . $pathParts[1]);
+		session_name($pathParts[1] . '+PHPEDITOR');
 	}
 }
 function isDirAllowed($dir) {
