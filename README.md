@@ -97,6 +97,6 @@ That command will create a file `userpasswords.txt` with the list of student use
 
 Then run
 
-    > sh setupUserAccounts.sh
+    > sudo sh setupUserAccounts.sh
 
 to actually create each of the student accounts and copy the password information into the accounts.
