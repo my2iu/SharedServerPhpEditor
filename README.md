@@ -110,4 +110,4 @@ To make it easier for students to login, you may want to create a web page at th
 
     > sudo sh html/createRootPage.sh
 
-This will install xsltproc, and then use xslt to create a webpage of users from `userpasswords.txt` and store it at `/var/www/html/index.html`
+This will install **xsltproc**, and then use xslt to create a webpage of users from `userpasswords.txt` and store it at `/var/www/html/index.html`. Students now just have to go to your server with their web browser, and they'll be able to get started.
