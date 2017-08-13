@@ -102,3 +102,12 @@ Then run
     > sudo sh setupUserAccounts.sh
 
 to actually create each of the student accounts and copy the password information into the accounts.
+
+
+### Creating a Root Web Page
+
+To make it easier for students to login, you may want to create a web page at the root of the webserver where students can find their accounts and login. To do that, just run the script
+
+    > sudo sh html/createRootPage.sh
+
+This will install xsltproc, and then use xslt to create a webpage of users from `userpasswords.txt` and store it at `/var/www/html/index.html`
