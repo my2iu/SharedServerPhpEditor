@@ -8,3 +8,18 @@ It's meant primarily for short interactive demo sessions or in-class tutorials a
 The password for logging in to the editor is stored in the file `edit/password`. You will have to create this file yourself. Since the server isn't particularly secure (and will likely be used over http where passwords can be sniffed), it's best to use a computer generated password that is only used for the class.
 
 Note: I don't actually know any PHP, so I suspect the code is pretty awful. I'm trying to set-up the code so that it's entirely client-based with the PHP server code merely providing an API that will be invoked by the JavaScript client.
+
+
+## Why Does This Exist?
+
+It is intended as a low-cost, easy way to teach the basics of server side programming to some students. Installing server-side software directly to student machines is time-consuming and complicated. It's possible to bring up separate, preconfigured servers in the cloud for each student, but that can be expensive if you have a lot of students. With this little PHP editor, only a single shared server has to be brought up in the cloud and all the students can use it.
+
+
+## Setting Up a Server
+
+Here are the instructions for setting up such a server using Ubuntu 16.04. You can easily install Ubuntu on a machine or launch such a server on Amazon's EC2 or elsewhere in the cloud:
+
+Once you login in as the default user (usually `ubuntu`), you should download the shared server code using
+
+```> git clone https://github.com/my2iu/SharedServerPhpEditor.git```
+
