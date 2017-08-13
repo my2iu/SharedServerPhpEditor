@@ -1,7 +1,7 @@
 # SharedServerPhpEditor
 A little web-based PHP editor that's useful for setting up a server for teaching PHP. 
 
-<img src="screenshot.png" width="350" alt="Screenshot of the PHP editor">
+<img src="html/screenshot.png" width="350" alt="Screenshot of the PHP editor">
 
 The goal is to let you set-up a Linux server with each student having a separate `public_html` user directory for their own website. This little PHP editor can then be dropped into their `public_html` directories, so all the students will have to do is visit their own website to find an online editor that they can use to create and edit PHP files. This way, a teacher only has to start-up a single teaching server in the cloud somewhere, let students practice their PHP there, and then the teacher can discard it right afterwards. Students don't have to install anything or learn anything about the Cloud or deal with server management etc. They just visit their website and can immediately start coding some PHP.
 
