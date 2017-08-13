@@ -17,9 +17,15 @@ It is intended as a low-cost, easy way to teach the basics of server side progra
 
 ## Setting Up a Server
 
-Here are the instructions for setting up such a server using Ubuntu 16.04. You can easily install Ubuntu on a machine or launch such a server on Amazon's EC2 or elsewhere in the cloud:
+Here are the instructions for setting up such a server using Ubuntu 16.04. You can easily install Ubuntu on a machine. If you launch such a server on Amazon's EC2 or elsewhere in the cloud, make sure you enable port 80:
 
 Once you login in as the default user (usually `ubuntu`), you should download the shared server code using
 
 ```> git clone https://github.com/my2iu/SharedServerPhpEditor.git```
 
+Assuming that you are working from a blank Ubuntu install, you need to install some extra packages for the web server and PHP. You can do that by running:
+
+```> cd SharedServerPhpEditor
+> sudo sh setupUbuntu.sh```
+
+(You can also manually execute each line of the package installation yourself if you feel safer that way.)
