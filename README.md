@@ -71,7 +71,7 @@ Find the line
 
 It's a large configuration file, so might want to do a search by using ctrl-W. Once you find the line, change it to
 
-    display_error = On
+    display_errors = On
 
 This will enable error messages in PHP. This is needed to help students debug their PHP code. Afterwards, save your changes and exit nano.
 
