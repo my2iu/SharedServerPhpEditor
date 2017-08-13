@@ -1,5 +1,5 @@
 while read -r name password; do
-	echo "Settup up user" $name
+	echo "Setting up user" $name
 	useradd -m $name
 	echo -n $password > /home/$name/password
 	chmod go-r /home/$name/password
