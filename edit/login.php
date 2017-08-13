@@ -1,6 +1,6 @@
 <?php
 require_once 'common.inc';
-if (isset($_REQUEST['password']) and $_REQUEST['password'] == trim(file_get_contents('password'))):
+if (isset($_REQUEST['password']) and $_REQUEST['password'] == trim(file_get_contents('../../password'))):
 	login();	
 	header('Location: .');
 elseif (isLoggedIn()): 
