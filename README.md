@@ -8,3 +8,71 @@ It's meant primarily for short interactive demo sessions or in-class tutorials a
 The password for logging in to the editor is stored in the file `edit/password`. You will have to create this file yourself. Since the server isn't particularly secure (and will likely be used over http where passwords can be sniffed), it's best to use a computer generated password that is only used for the class.
 
 Note: I don't actually know any PHP, so I suspect the code is pretty awful. I'm trying to set-up the code so that it's entirely client-based with the PHP server code merely providing an API that will be invoked by the JavaScript client.
+
+
+## Why Does This Exist?
+
+It is intended as a low-cost, easy way to teach the basics of server side programming to some students. Installing server-side software directly to student machines is time-consuming and complicated. It's possible to bring up separate, preconfigured servers in the cloud for each student, but that can be expensive if you have a lot of students. With this little PHP editor, only a single shared server has to be brought up in the cloud and all the students can use it.
+
+
+## Setting Up a Server
+
+Here are the instructions for setting up such a server using Ubuntu 16.04. You can easily install Ubuntu on a machine. If you launch such a server on Amazon's EC2 or elsewhere in the cloud, make sure you enable port 80:
+
+Once you login in as the default user (usually `ubuntu`), you should download the shared server code using
+
+    > git clone https://github.com/my2iu/SharedServerPhpEditor.git
+
+Assuming that you are working from a blank Ubuntu install, you need to install some extra packages for the web server and PHP. You can do that by running:
+
+    > cd SharedServerPhpEditor
+    > sudo sh setupUbuntu.sh
+
+(You can also manually execute each line of the package installation yourself if you feel safer that way.)
+
+Next, you need to edit some configuration files. Open the file `/etc/apache2/mods-available/php7.0.conf` in an editor using
+
+    > sudo nano /etc/apache2/mods-available/php7.0.conf
+
+Find the line 
+
+    php_admin_flag engine Off
+
+and comment it out by putting a `#` in front. This change enables PHP in student directories.
+
+    # php_admin_flag engine Off
+
+Save and exit nano by type ctrl-O to save, pressing enter to confirm, and then ctrl-X to exit. 
+
+Open the file `/etc/apache2/mods-enabled/userdir.conf` in an editor using
+
+    > sudo nano /etc/apache2/mods-enabled/userdir.conf
+
+Find the `<Directory ...` section and add the line `RMode stat` to it. It should look something like this:
+
+    <Directory /home/*/public_html>
+            RMode stat
+            ...
+    </Directory>
+
+This change will mean that PHP code run in student directories will run as the student, not as a common user. This helps prevent each student's code from interfering with the code from other students, and gives students a little more freedom in their PHP code to read and write files without having to do a lot of extra configuration.
+
+Finally, open the file `/etc/php/7.0/apache2/php.ini` in an editor using
+
+    > sudo nano /etc/php/7.0/apache2/php.ini
+
+Find the line
+
+    display_errors = Off
+
+It's a large configuration file, so might want to do a search by using ctrl-W. Once you find the line, change it to
+
+    display_error = On
+
+This will enable error messages in PHP. This is needed to help students debug their PHP code. Afterwards, save your changes and exit nano.
+
+Now you should restart the Apache web server so that it picks up all the changes that you've made. Do this using
+
+    > sudo service apache2 restart
+
+
