@@ -17,6 +17,8 @@ It is intended as a low-cost, easy way to teach the basics of server side progra
 
 ## Setting Up a Server
 
+### Installing and configuring Apache, PHP, etc.
+
 Here are the instructions for setting up such a server using Ubuntu 16.04. You can easily install Ubuntu on a machine. If you launch such a server on Amazon's EC2 or elsewhere in the cloud, make sure you enable port 80:
 
 Once you login in as the default user (usually `ubuntu`), you should download the shared server code using
@@ -75,4 +77,26 @@ Now you should restart the Apache web server so that it picks up all the changes
 
     > sudo service apache2 restart
 
+### Setting-Up Student Accounts
 
+We want to set-up a bunch of student accounts that will hold each student's PHP editor and their PHP programs. We assume that the server will only be used for this shared PHP server, so we will configure all user accounts to have the necessary support. Do this by running the script
+
+    > sudo sh setupHomeDirLayout.sh
+
+Next, we want to create a list of passwords for the students. These passwords are only for the PHP editor and not for the Linux user accounts (those accounts will not have passwords and cannot be logged into). We want these passwords in a single, central file so that we can print them out to give them to students (or you can make a script for e-mailing them to students or whatever). 
+
+Install a password generator
+
+    > sudo apt-get -y install apg
+
+Generate 20 passwords using
+
+    > sh createStudentPasswords.sh 20
+
+That command will create a file `userpasswords.txt` with the list of student users and their passwords.
+
+Then run
+
+    > sh setupUserAccounts.sh
+
+to actually create each of the student accounts and copy the password information into the accounts.
